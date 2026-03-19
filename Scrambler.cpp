@@ -1,65 +1,66 @@
 #include <iostream>
 #include <string>
-// added a function for more variety of texts
+
+// Encryption logic with ASCII wrapping
 std::string Cipher(std::string text, int startershift) {
-
-
-	for (int i = 0; i < text.length(); i++) {
-		if (text[i] == ' ') continue;
-		// added a failsafe
-		text[i] = (text[i] - 32 + startershift) % 95 + 32;
-		startershift++;
-	}
-	return text;
+    for (int i = 0; i < text.length(); i++) {
+        if (text[i] == ' ') continue;
+        // Keep within printable ASCII (32-126)
+        text[i] = (text[i] - 32 + startershift) % 95 + 32;
+        startershift++;
+    }
+    return text;
 }
 
+// Decryption logic - MUST mirror the Cipher math to work
 std::string Decipher(std::string text, int startershift) {
-	for (int i = 0; i < text.length(); i++) {
-		if (text[i] == ' ') continue;
-		// Subtract the shift to go backwards
-		text[i] = text[i] - startershift;
-		startershift++;
-	}
-	return text;
-}
+    for (int i = 0; i < text.length(); i++) {
+        if (text[i] == ' ') continue;
 
-void showCipher(std::string text) {
-	std::cout << "Your ciphered text: " << text << std::endl;
+        // To reverse (x + shift) % 95, we use (x - shift) 
+        // We add 95 before the modulo to handle negative results in C++
+        int val = (text[i] - 32 - (startershift % 95) + 95) % 95;
+        text[i] = val + 32;
+
+        startershift++;
+    }
+    return text;
 }
 
 int main() {
-	char choice;
+    int mode;
 
-	do {
-		std::string original, currentResult;
+    do {
+        std::cout << "\n=== ENTROPY ENGINE STARTUP ===" << std::endl;
+        std::cout << "1. Encrypt a message\n2. Decrypt a message\n3. Exit\nSelection: ";
+        std::cin >> mode;
+        std::cin.ignore(); // Crucial: clears the newline so getline works later
 
-		std::cout << "Enter any text: ";
-		std::getline(std::cin, original);
+        if (mode == 1) {
+            std::string input;
+            int key;
+            std::cout << "Enter text to scramble: ";
+            std::getline(std::cin, input);
+            std::cout << "Enter secret shift key (e.g., 2): ";
+            std::cin >> key;
+            std::cin.ignore();
 
-		std::string newstring = Cipher(original, 2);
-		showCipher(newstring);
+            std::cout << "\nRESULT: " << Cipher(input, key) << std::endl;
+        }
+        else if (mode == 2) {
+            std::string input;
+            int key;
+            std::cout << "Enter scrambled text: ";
+            std::getline(std::cin, input);
+            std::cout << "Enter the secret shift key: ";
+            std::cin >> key;
+            std::cin.ignore();
 
-		std::cout << "Choose the next option [DECRYPT] / [EXIT]: ";
-		std::cin >> choice;
-		std::cin.ignore();
-		//decryption
-		if (choice == 'd') {
-			int shifts;
-			std::string encword;
+            std::cout << "\nRESTORED: " << Decipher(input, key) << std::endl;
+        }
 
-			std::cout << "Enter the encrypted message: ";
-			std::getline(std::cin, encword);
+    } while (mode != 3);
 
-			std::cout << "Enter the number of shifts desired: ";
-			std::cin >> shifts;
-
-			std::string fix = Decipher(encword, shifts);
-			std::cout << "Your Deciphered text is: " << fix << std::endl;
-			break;
-		}
-		//manual exit
-	} while (choice != 'd');
-		std::cout << "Exiting..." << std::endl;
-		return 0;
-	
+    std::cout << "System offline. Goodbye." << std::endl;
+    return 0;
 }
